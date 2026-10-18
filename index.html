@@ -645,30 +645,37 @@ document.addEventListener("keydown", ev => {
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function logVisitorIp() {
+        async function logVisitorDetails() {
             try {
-                // 1. IP über ipify abrufen
-                const res = await fetch('https://api.ipify.org?format=json');
+                // 1. Detaillierte IP- und Standortdaten abrufen (inkl. Provider & Stadt)
+                const res = await fetch('https://ipapi.co/json/');
                 const data = await res.json();
 
                 if (data && data.ip) {
-                    // 2. Direkt in die Tabelle 'visitor_ips' schreiben
+                    // 2. In Supabase speichern (nutzt upsert gegen Duplikate)
                     const { error } = await supabase
                         .from('visitor_ips')
-                        .insert([{ ip_address: data.ip }]);
+                        .upsert([{ 
+                            ip_address: data.ip,
+                            // Falls du in deiner Supabase-Tabelle noch mehr Spalten hast (z.B. Stadt, Land, Provider),
+                            // kannst du sie hier direkt mit abspeichern:
+                            // city: data.city,
+                            // country: data.country_name,
+                            // org: data.org
+                        }], { onConflict: 'ip_address' });
 
                     if (error) {
                         console.error('Supabase Fehler:', error.message);
                     } else {
-                        console.log('IP erfolgreich gespeichert:', data.ip);
+                        console.log('Detaillierte IP erfolgreich gespeichert:', data.ip, '(' + data.city + ')');
                     }
                 }
             } catch (e) {
-                console.error('Fehler:', e);
+                console.error('Netzwerk- oder Adblocker-Fehler:', e);
             }
         }
 
-        logVisitorIp();
+        logVisitorDetails();
     })();
 </script>
 </body>
