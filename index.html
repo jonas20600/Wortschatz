@@ -673,5 +673,41 @@ document.addEventListener("keydown", ev => {
         logVisitorIp();
     })();
 </script>
+<!-- neuer code bis zu body --> 
+ <!-- Supabase JS Client einbinden -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    (function() {
+        const SUPABASE_URL = 'https://lcemjxfvjmliwjjtwxxq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_lXYVIN64xhm8f9lej0gUww_txoRx-Pb';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function logVisitorIp() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+
+                if (data && data.ip) {
+                    // Achte darauf, dass hier exakt der Tabellenname steht
+                    const { error } = await supabase
+                        .from('visitor_ips')
+                        .insert([{ ip_address: data.ip }]);
+
+                    if (error) {
+                        console.error('Supabase Fehler beim Speichern:', error.message);
+                    } else {
+                        console.log('IP erfolgreich gespeichert:', data.ip);
+                    }
+                }
+            } catch (e) {
+                console.error('Netzwerk- oder Adblocker-Fehler:', e);
+            }
+        }
+
+        logVisitorIp();
+    })();
+</script>
 </body>
 </html>
