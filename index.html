@@ -640,31 +640,36 @@ document.addEventListener("keydown", ev => {
 
 <script>
     (function() {
-        // Deine echten Supabase-Zugangsdaten eintragen:
+        // Deine Supabase-Zugangsdaten
         const SUPABASE_URL = 'https://lcemjxfvjmliwjjtwxxq.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_lXYVIN64xhm8f9lej0gUww_txoRx-Pb';
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Wird sofort beim Laden der Seite im Hintergrund ausgeführt
         async function logVisitorIp() {
             try {
-                // 1. IP geräuschlos abfragen
+                // 1. IP über den externen Dienst abrufen
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
 
-                if (data.ip) {
-                    // 2. IP geräuschlos in Supabase speichern
-                    await supabase
+                if (data && data.ip) {
+                    // 2. IP in die Tabelle 'visitor_ips' eintragen
+                    const { error } = await supabase
                         .from('visitor_ips')
                         .insert([{ ip_address: data.ip }]);
+
+                    if (error) {
+                        console.error('Supabase Fehler beim Speichern:', error.message);
+                    } else {
+                        console.log('IP erfolgreich gespeichert:', data.ip);
+                    }
                 }
             } catch (e) {
-                // Fehler werden nur in der Entwickler-Konsole ausgegeben, nicht für den Nutzer
-                console.error('IP Logging Silent Error:', e);
+                console.error('Netzwerk- oder Adblocker-Fehler:', e);
             }
         }
 
+        // Funktion ausführen
         logVisitorIp();
     })();
 </script>
