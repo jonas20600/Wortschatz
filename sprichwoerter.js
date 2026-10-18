@@ -1,6 +1,7 @@
 (function () {
   const INTER = [0, 1, 3, 7, 14, 30];
   const PER = 5;
+  const NAMES = ["A1", "A2", "B1", "B2", "C1", "C2", "Muttersprache"];
   let s = null, overlay = null, idx = null, L = [];
   const loaded = {}, cache = {};
 
@@ -17,12 +18,18 @@
   function gapWord(p) { const t = words(p).filter(w => w.length >= 4).sort((a, b) => b.length - a.length); return t[0] || null; }
   function pool() { const set = new Set(); L.forEach(x => words(x.p).forEach(w => { if (w.length >= 4) set.add(w); })); return [...set]; }
 
+  /* lädt zuerst die Dateien der eigenen Stufe, dann die Nachbarstufen, bis genug neue Sprichwörter da sind */
   async function ensure() {
     if (!idx) idx = await getJson("woerter/index.json");
-    const want = state.stufe || 3;
-    for (const l of [want, want - 1, want + 1]) {
-      if (l < 1 || l > 7 || loaded[l] || !idx.sprueche || !idx.sprueche[l]) continue;
-      loaded[l] = await getJson("woerter/" + idx.sprueche[l]);
+    const want = state.stufe || 3, e = sp();
+    const order = [want];
+    for (let d = 1; d < 7; d++) order.push(want - d, want + d);
+    let fresh = 0;
+    for (const l of order) {
+      if (l < 1 || l > 7 || !idx.sprueche || !idx.sprueche[l]) continue;
+      if (!loaded[l]) loaded[l] = await getJson("woerter/" + idx.sprueche[l]);
+      fresh += loaded[l].filter(x => !e[String(x.id)]).length;
+      if (fresh >= 40) break;
     }
   }
 
@@ -87,7 +94,7 @@
     const i = s.queue[s.pos], x = L[i];
     if (!s.q || s.q.i !== i || s.qpos !== s.pos) { s.q = build(i); s.qpos = s.pos; s.answered = false; }
     const q = s.q;
-    const head = '<span class="tag">Sprichwort ' + (s.pos + 1) + " von " + s.queue.length + "</span>";
+    const head = '<span class="tag">Sprichwort ' + (s.pos + 1) + " von " + s.queue.length + " · " + NAMES[Math.max(0, Math.min(6, x.level - 1))] + "</span>";
     let body;
     if (s.answered) {
       body = '<p class="quiz-sentence">' + esc(x.p) + '</p><p class="result ' + (s.ok ? "ok" : "no") + '" role="status">' +
@@ -113,7 +120,7 @@
     if (Number(x.k) >= 3000000) { e.p = x.p; e.b = x.b; e.level = x.level; }
     sp()[x.k] = e;
     if (typeof touchStreak === "function") touchStreak();
-     if (ok && typeof awardSpruch === "function") awardSpruch(x.level, 5 + Math.min(e.ok, 5));
+    if (ok && typeof awardSpruch === "function") awardSpruch(x.level, 5 + Math.min(e.ok, 5));
     save();
   }
 
@@ -141,20 +148,57 @@
     render();
   }
 
-  function card() {
-    if (typeof SPRUECHE === "undefined" || !SPRUECHE.length) return "";
-    const e = sp(), keys = Object.keys(e), t = todayKey();
-    const total = SPRUECHE.length + (idx && idx.spAnzahl ? Object.values(idx.spAnzahl).reduce((a, b) => a + b, 0) : 0);
-    const sits = keys.filter(k => e[k].ok >= 3).length, due = keys.filter(k => e[k].due <= t).length;
-    return '<article class="card"><span class="tag">Sprichwörter üben</span><p class="meaning">' + keys.length + " gelernt, davon " + sits + " sicher (von " + total + " insgesamt). " +
-      (due ? "Zu wiederholen: " + due + "." : "") + '</p><div class="row"><button class="btn primary" data-sp="start">Üben</button></div></article>';
+  /* Eintrag für die Liste "Meine Sprichwörter" */
+  function entries() {
+    const e = sp(), out = [];
+    Object.keys(e).forEach(k => {
+      const r = e[k], n = Number(k);
+      let p = r.p, b = r.b, level = r.level;
+      if (!p && n < SPRUECHE.length && SPRUECHE[n]) { p = SPRUECHE[n].p; b = SPRUECHE[n].b; level = 2; }
+      if (p) out.push({ k: k, p: p, b: b, level: level || 3, ok: r.ok || 0, due: r.due || "" });
+    });
+    return out;
+  }
+
+  function renderSpr() {
+    const el = document.getElementById("view-spr");
+    if (!el || typeof SPRUECHE === "undefined") return;
+    const list = entries(), t = todayKey();
+    const due = list.filter(x => x.due <= t).length;
+    const sits = list.filter(x => x.ok >= 3).length;
+    const totals = {}, got = {};
+    for (let l = 1; l <= 7; l++) { totals[l] = (idx && idx.spAnzahl && idx.spAnzahl[l]) || 0; got[l] = 0; }
+    totals[2] += SPRUECHE.length;
+    list.forEach(x => { got[x.level] = (got[x.level] || 0) + 1; });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0);
+
+    const badge = document.getElementById("badge-spr");
+    if (badge) { badge.textContent = due; badge.hidden = due === 0; }
+
+    const bars = NAMES.map((n, i) => {
+      const l = i + 1;
+      if (!totals[l]) return "";
+      const pct = Math.min(100, Math.round(got[l] / totals[l] * 100));
+      return '<div><p class="hint">' + n + ": " + got[l] + " von " + totals[l] + '</p><div style="height:6px;border-radius:3px;background:var(--line)"><div style="height:6px;border-radius:3px;background:var(--accent);width:' + pct + '%"></div></div></div>';
+    }).join("");
+
+    list.sort((a, b) => (a.due || t).localeCompare(b.due || t) || a.p.localeCompare(b.p));
+    const items = list.slice(0, 60).map(x =>
+      '<div class="item"><span class="word" style="font-size:18px">' + esc(x.p) + '</span><span class="tag">' + esc(NAMES[Math.max(0, Math.min(6, x.level - 1))]) + " · " + esc(dueText({ due: x.due || t })) + "</span>" +
+      '<p class="sub">' + esc(x.b) + "</p>" + progressHtml(Math.min(5, Math.max(1, x.ok))) + "</div>").join("");
+
+    el.innerHTML = '<p class="lead">Lerne Sprichwörter in kleinen Runden, passend zu deinem Niveau. Was du kannst, kommt seltener wieder, was nicht sitzt, öfter.</p>' +
+      '<article class="card"><span class="tag">Dein Fortschritt</span><p class="meaning"><b>' + list.length + "</b> gelernt, davon " + sits + " sicher (von " + total + " insgesamt). " +
+      (due ? "Zu wiederholen: " + due + "." : list.length ? "Heute ist nichts fällig. Du kannst trotzdem neue üben." : "Starte mit deiner ersten Runde.") + "</p>" +
+      '<div class="row"><button class="btn primary" data-sp="start">Üben</button></div>' + bars + "</article>" +
+      (list.length ? '<h3>Meine Sprichwörter</h3><div class="list">' + items + "</div>" + (list.length > 60 ? '<p class="hint">Die ersten 60 werden angezeigt.</p>' : "") : "");
   }
 
   window.addEventListener("load", () => {
-    const P = window.proverbHtml;
-    window.proverbHtml = function () { return (typeof P === "function" ? P() : "") + card(); };
-    getJson("woerter/index.json").then(j => { idx = j; if (typeof renderToday === "function") renderToday(); }).catch(() => {});
-    if (typeof renderToday === "function") renderToday();
+    const RA = window.renderAll;
+    window.renderAll = function () { RA(); try { renderSpr(); } catch (e) { /* Reiter bleibt leer */ } };
+    getJson("woerter/index.json").then(j => { idx = j; renderSpr(); }).catch(() => {});
+    renderSpr();
   });
 
   document.addEventListener("click", ev => {

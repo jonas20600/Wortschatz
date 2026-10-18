@@ -171,14 +171,16 @@ textarea.field { resize: vertical; min-height: 84px; }
     <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">Heute neu</button>
     <button class="tab" role="tab" id="tab-review" aria-selected="false" data-view="review">Wiederholen <span class="badge" id="badge-due" hidden>0</span></button>
     <button class="tab" role="tab" id="tab-mine" aria-selected="false" data-view="mine">Meine Wörter</button>
-        <button class="tab" role="tab" id="tab-dict" aria-selected="false" data-view="dict">Wörterbuch</button>
+    <button class="tab" role="tab" id="tab-dict" aria-selected="false" data-view="dict">Wörterbuch</button>
+   <button class="tab" role="tab" id="tab-spr" aria-selected="false" data-view="spr">Sprichwörter <span class="badge" id="badge-spr" hidden>0</span></button>
   </nav>
 
   <main>
     <section class="panel" id="view-today" role="tabpanel" aria-labelledby="tab-today"></section>
     <section class="panel" id="view-review" role="tabpanel" aria-labelledby="tab-review" hidden></section>
     <section class="panel" id="view-mine" role="tabpanel" aria-labelledby="tab-mine" hidden></section>
-        <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
+     <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
+    <section class="panel" id="view-spr" role="tabpanel" aria-labelledby="tab-spr" hidden></section>
   </main>
 
   <p class="foot" id="foot">Dein Fortschritt wird automatisch gespeichert.</p>
@@ -569,7 +571,7 @@ function renderAll() {
 function showView(name) {
   activeView = name;
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
-    ["today", "review", "mine", "dict"].forEach(v => { $("view-" + v).hidden = v !== name; });
+    ["today", "review", "mine", "dict", "spr"].forEach(v => { $("view-" + v).hidden = v !== name; });
   if (name === "review") resetReview();
   renderAll();
   window.scrollTo({ top: 0 });

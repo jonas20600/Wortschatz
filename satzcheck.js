@@ -22,6 +22,52 @@
     return out + esc(text.slice(pos));
   }
 
+    function kommaFehler(text) {
+    const out = [];
+    const SUB = ["dass", "daß", "weil", "obwohl", "obgleich", "obschon", "falls", "sodass", "sofern", "solange", "sooft", "indem", "nachdem", "bevor", "sobald", "ob", "wenn"];
+    const PRON = ["ich", "du", "er", "sie", "es", "wir", "ihr", "man"];
+    const PART = ["auch", "selbst", "gerade", "nur", "besonders", "sogar", "erst", "schon", "nicht", "insbesondere", "allem", "so", "als", "wie"];
+    const EXCL = ["den", "dem", "einen", "seinen", "ihren", "meinen", "deinen", "unseren", "euren", "diesen", "jenen", "denen", "allen", "vielen", "beiden", "anderen", "neuen", "guten", "alten", "großen", "kleinen", "ersten", "letzten", "jeden"];
+    const commaBefore = pos => text.slice(0, pos).trimEnd().slice(-1) === ",";
+    const add = (t, message, rep) => out.push({ offset: t.i, length: t.w.length, message: message, replacements: rep ? [{ value: rep }] : [] });
+    const sre = /[^.!?…]+[.!?…]*/g;
+    let sm;
+    while ((sm = sre.exec(text))) {
+      const toks = [], wre = /[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu;
+      let wm;
+      while ((wm = wre.exec(sm[0]))) toks.push({ w: wm[0], l: wm[0].toLowerCase(), i: sm.index + wm.index });
+      if (!toks.length) continue;
+      const first = toks[0];
+      if (SUB.includes(first.l) && toks.length >= 6 && !sm[0].includes(",") && !/\?\s*$/.test(sm[0]))
+        add(first, "Nach dem Nebensatz mit „" + first.w + "“ fehlt vermutlich ein Beistrich vor dem Hauptsatz.");
+      if (["ja", "nein", "oh", "ach"].includes(first.l) && toks.length >= 3 && PRON.includes(toks[1].l) && text[first.i + first.w.length] !== ",")
+        add(first, "Nach „" + first.w + "“ am Satzanfang steht ein Beistrich.", first.w + ",");
+      for (let k = 1; k < toks.length; k++) {
+        const t = toks[k], p = toks[k - 1], n = toks[k + 1];
+        const afterAnd = p.l === "und" || p.l === "oder";
+        const sub = SUB.includes(t.l) || ((t.l === "damit" || t.l === "während") && n && PRON.includes(n.l));
+        if (sub && !afterAnd) {
+          let at = k;
+          if (PART.includes(p.l)) { at = k - 1; if (p.l === "allem" && k >= 2 && toks[k - 2].l === "vor") at = k - 2; }
+          if (at > 0 && !commaBefore(t.i) && !commaBefore(toks[at].i))
+            add(t, "Vor „" + t.w + "“ fehlt ein Beistrich: Nebensätze werden vom Hauptsatz durch Beistriche getrennt.", ", " + t.w);
+        }
+        if (t.l === "sondern" && !afterAnd && !commaBefore(t.i)) add(t, "Vor „sondern“ steht immer ein Beistrich.", ", sondern");
+        if (t.l === "aber" && n && PRON.includes(n.l) && !commaBefore(t.i)) add(t, "Vor „aber“ steht hier ein Beistrich, weil ein neuer Satz beginnt.", ", aber");
+        if (["um", "ohne", "anstatt", "statt"].includes(t.l) && !afterAnd && !commaBefore(t.i)) {
+          for (let j = k + 1; j < Math.min(toks.length - 1, k + 9); j++) {
+            if (toks[j].l !== "zu") continue;
+            const inf = toks[j + 1];
+            const okInf = /^\p{Ll}/u.test(inf.w) && (/(en|ern|eln)$/.test(inf.l) || inf.l === "sein" || inf.l === "tun") && !EXCL.includes(inf.l);
+            if (okInf && !text.slice(t.i, inf.i).includes(",") && /^\s*([.!?,;:]|$|(und|oder|aber|sondern)\b)/i.test(text.slice(inf.i + inf.w.length)))
+              add(t, "Vor „" + t.w + " … zu“ fehlt ein Beistrich: Infinitivgruppen mit „um“, „ohne“ und „statt“ werden abgetrennt.", ", " + t.w);
+            break;
+          }
+        }
+      }
+    }
+    return out;
+  }
   document.addEventListener("click", async ev => {
     const btn = ev.target.closest("[data-action='save-sentence']");
     if (!btn) return;
@@ -47,6 +93,11 @@
     say("", "Ich prüfe deinen Satz …");
     try {
       const own = [];
+            kommaFehler(text).forEach(k => own.push(k));
+      if (w.t === "Nomen") {
+        const nm = new RegExp("(^|[^\\p{L}])(" + stem + "\\p{L}*)", "iu").exec(text);
+        if (nm && /^\p{Ll}/u.test(nm[2])) own.push({ offset: nm.index + nm[1].length, length: nm[2].length, message: "Nomen werden großgeschrieben.", replacements: [{ value: nm[2].charAt(0).toUpperCase() + nm[2].slice(1) }] });
+      }
       const fw = text.match(/^\S+/)[0], lw = text.match(/\S+$/)[0];
       if (/^\p{Ll}/u.test(text)) own.push({ offset: 0, length: fw.length, message: "Das erste Wort im Satz wird großgeschrieben.", replacements: [{ value: fw.charAt(0).toUpperCase() + fw.slice(1) }] });
       if (!/[.!?…]["“”»«)]*$/.test(text)) own.push({ offset: text.length - lw.length, length: lw.length, message: "Nach dem letzten Wort fehlt ein Satzzeichen. Setze einen Punkt, ein Ausrufezeichen oder ein Fragezeichen.", replacements: [] });
@@ -67,7 +118,7 @@
       } catch (e) { /* lt bleibt null */ }
 
       if (lt === null && !own.length) { say("no", hinweis); return; }
-      const ms = (lt || []).concat(own.filter(o => !(lt || []).some(m => m.offset === o.offset))).sort((a, b) => a.offset - b.offset);
+      const ms = (lt || []).concat(own.filter(o => !(lt || []).some(m => m.offset < o.offset + o.length && o.offset < m.offset + m.length))).sort((a, b) => a.offset - b.offset);
       if (!ms.length) {
         saveSentence(id, text);
         renderStats();
