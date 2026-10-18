@@ -1,0 +1,53 @@
+/* Feinschliff: überschreibt nur das Aussehen, keine Funktion */
+body { background-image: linear-gradient(180deg, var(--surface-2) 0, var(--bg) 320px); background-repeat: no-repeat; }
+.brand h1 { font-size: 38px; letter-spacing: -0.02em; }
+.stats { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px; }
+.stat b { font-size: 28px; }
+
+.card { box-shadow: 0 1px 2px rgba(10, 20, 50, 0.06), 0 8px 24px -12px rgba(10, 20, 50, 0.18); }
+.item { box-shadow: 0 1px 2px rgba(10, 20, 50, 0.05); }
+.tabs { box-shadow: inset 0 0 0 1px var(--line); }
+.tab:hover:not([aria-selected="true"]) { color: var(--fg); }
+
+.btn { border-radius: 12px; }
+.btn.primary { box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12), 0 6px 16px -8px var(--accent); }
+.btn:active { transform: translateY(1px); }
+.btn.ghost:hover { background: var(--surface-2); }
+.t-opt:hover, .ex-opt:hover { background: var(--surface-2); border-color: var(--accent); }
+
+.field { border-radius: 12px; }
+.field:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); }
+.quiz-sentence { line-height: 1.6; }
+.word mark { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+.proverb { border-left: 5px solid var(--marker); }
+.proverb .quiz-sentence { font-size: 24px; }
+.progress i { height: 8px; width: 22px; }
+
+/* Konto-Zeile und Bestenliste-Knopf oben */
+.wrap > .row { gap: 8px 10px; }
+.wrap > .row .btn, #konto > p .btn { min-height: 38px; padding: 6px 14px; font-size: 15px; }
+#konto > p.hint { font-size: 14px; }
+
+/* Bestenliste: Platz 1 bis 3 */
+.lb-box .list .item:nth-child(1) { border-left: 6px solid #e6b422; }
+.lb-box .list .item:nth-child(2) { border-left: 6px solid #a8b0bd; }
+.lb-box .list .item:nth-child(3) { border-left: 6px solid #c9824b; }
+.lb-box .list .item:nth-child(-n+3) .word { font-size: 23px; }
+
+/* Fenster */
+.t-overlay, .lb-overlay, .dsg-overlay { backdrop-filter: blur(3px); }
+.t-box, .lb-box, .dsg-box { box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5); }
+
+@media (max-width: 440px) {
+  .brand h1 { font-size: 32px; }
+  .stats { padding: 8px 12px; }
+  .card { padding: 16px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .t-box, .lb-box, .dsg-box { animation: rise 0.22s ease-out; }
+  .result { animation: pop 0.25s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0.4; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+}

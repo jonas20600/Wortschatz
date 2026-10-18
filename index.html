@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wortschatz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: eine schmale Lernspalte wie ein Notizblock. Oben Kennzahlen, darunter drei Reiter. Das Markergelb steht nur auf dem Lernwort und der Lücke. */
+:root {
+  --bg: #eef2f8;
+  --surface: #ffffff;
+  --surface-2: #e3e9f4;
+  --fg: #14213d;
+  --muted: #55627f;
+  --line: #cbd5e6;
+  --accent: #2f5bea;
+  --accent-fg: #ffffff;
+  --marker: #ffd84d;
+  --marker-fg: #14213d;
+  --good: #1e8a5a;
+  --bad: #c2392f;
+  --font-display: "Familjen Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1526;
+    --surface: #17213a;
+    --surface-2: #202c4a;
+    --fg: #e8edf8;
+    --muted: #9eabc7;
+    --line: #2c3a5c;
+    --accent: #8aa6ff;
+    --accent-fg: #0e1526;
+    --marker: #ffd84d;
+    --marker-fg: #14213d;
+    --good: #52c38f;
+    --bad: #ff8077;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1526;
+  --surface: #17213a;
+  --surface-2: #202c4a;
+  --fg: #e8edf8;
+  --muted: #9eabc7;
+  --line: #2c3a5c;
+  --accent: #8aa6ff;
+  --accent-fg: #0e1526;
+  --marker: #ffd84d;
+  --marker-fg: #14213d;
+  --good: #52c38f;
+  --bad: #ff8077;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.brand h1 { font-size: 34px; line-height: 1; font-weight: 700; }
+.brand p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+.stats { display: flex; gap: 20px; }
+.stat { display: flex; flex-direction: column; min-width: 0; }
+.stat b { font-family: var(--font-display); font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+.tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
+.tab { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 8px; border-radius: 9px; font-family: var(--font-display); font-weight: 600; font-size: 17px; color: var(--muted); display: flex; justify-content: center; align-items: center; gap: 8px; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(10, 20, 50, 0.12); }
+.badge { background: var(--accent); color: var(--accent-fg); border-radius: 99px; font-size: 13px; padding: 0 8px; line-height: 20px; font-variant-numeric: tabular-nums; }
+
+.panel { display: flex; flex-direction: column; gap: 16px; }
+.lead { color: var(--muted); font-size: 16px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.word-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.word { font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.word mark, .gap { background: var(--marker); color: var(--marker-fg); border-radius: 4px; padding: 0 6px; }
+.tag { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.meaning { font-size: 18px; }
+.example { color: var(--fg); border-left: 3px solid var(--line); padding-left: 14px; font-size: 18px; }
+.example em { font-style: normal; font-weight: 700; background: var(--marker); color: var(--marker-fg); border-radius: 3px; padding: 0 4px; }
+.proverb .quiz-sentence { font-family: var(--font-display); font-weight: 700; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 16px; font-weight: 700; min-height: 44px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+.done-note { color: var(--good); font-weight: 700; font-size: 16px; }
+
+.field { width: 100%; font: inherit; color: var(--fg); background: var(--bg); border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; min-height: 48px; }
+.field:focus { border-color: var(--accent); outline: none; }
+.field.ok { border-color: var(--good); }
+.field.no { border-color: var(--bad); }
+textarea.field { resize: vertical; min-height: 84px; }
+.quiz-sentence { font-size: 22px; line-height: 1.55; }
+.hint { color: var(--muted); font-size: 16px; }
+.result { font-weight: 700; }
+.result.ok { color: var(--good); }
+.result.no { color: var(--bad); }
+
+.progress { display: flex; gap: 6px; align-items: center; }
+.progress i { width: 18px; height: 6px; border-radius: 3px; background: var(--line); display: block; }
+.progress i.on { background: var(--accent); }
+.progress span { font-size: 13px; color: var(--muted); margin-left: 4px; }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.item .word { font-size: 21px; }
+.item .sub { grid-column: 1 / -1; color: var(--muted); font-size: 16px; }
+.item .mine { grid-column: 1 / -1; font-size: 16px; }
+.item .mine b { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); display: block; }
+
+.empty { background: var(--surface); border: 2px dashed var(--line); border-radius: 14px; padding: 28px 20px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.empty h3 { font-size: 22px; }
+.empty p { color: var(--muted); max-width: 40ch; }
+
+.foot { color: var(--muted); font-size: 14px; text-align: center; }
+
+@media (max-width: 440px) {
+  .word { font-size: 26px; }
+  .quiz-sentence { font-size: 20px; }
+  .stats { gap: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tab, .btn, .field { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+}
+[hidden] { display: none !important; }
+</style>
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Wortschatz</h1>
+      <p id="today-label">Neue Wörter, jeden Tag.</p>
+    </div>
+    <div class="stats" aria-label="Dein Fortschritt">
+      <div class="stat"><b id="st-learned">0</b><span>Gelernt</span></div>
+      <div class="stat"><b id="st-due">0</b><span>Fällig</span></div>
+      <div class="stat"><b id="st-streak">0</b><span>Tage in Folge</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">Heute neu</button>
+    <button class="tab" role="tab" id="tab-review" aria-selected="false" data-view="review">Wiederholen <span class="badge" id="badge-due" hidden>0</span></button>
+    <button class="tab" role="tab" id="tab-mine" aria-selected="false" data-view="mine">Meine Wörter</button>
+        <button class="tab" role="tab" id="tab-dict" aria-selected="false" data-view="dict">Wörterbuch</button>
+  </nav>
+
+  <main>
+    <section class="panel" id="view-today" role="tabpanel" aria-labelledby="tab-today"></section>
+    <section class="panel" id="view-review" role="tabpanel" aria-labelledby="tab-review" hidden></section>
+    <section class="panel" id="view-mine" role="tabpanel" aria-labelledby="tab-mine" hidden></section>
+        <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
+  </main>
+
+  <p class="foot" id="foot">Dein Fortschritt wird automatisch gespeichert.</p>
+</div>
+<script src="woerter.js"></script>
+<script src="woerter-2.js"></script>
+<script src="woerter-3.js"></script>
+<script src="sprueche.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="konto.js"></script>
+<script src="test.js"></script>
+<script src="woerterbuch.js"></script>
+<script src="satzcheck.js"></script>
+<script src="laden.js"></script>
+<script src="punkte.js"></script>
+<script src="bestenliste.js"></script>
+<script src="datenschutz.js"></script>
+<script src="uebungen.js"></script>
+<script src="sprichwoerter.js"></script>
+<script src="konto-loeschen.js"></script>
+<script>
+
+const NEW_PER_DAY = 5;
+const INTERVALS = [0, 1, 3, 7, 14, 30]; // Tage bis zur nächsten Wiederholung je Stufe
+const MAX_BOX = 5;
+const LOCAL_KEY = "wortschatz-v1";
+
+/* ---------- Datum ---------- */
+function pad(n) { return String(n).padStart(2, "0"); }
+function dayKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function todayKey() { return dayKey(new Date()); }
+function addDays(key, n) {
+  const [y, m, d] = key.split("-").map(Number);
+  return dayKey(new Date(y, m - 1, d + n));
+}
+function diffDays(a, b) { // b - a in Tagen
+  const [y1, m1, d1] = a.split("-").map(Number);
+  const [y2, m2, d2] = b.split("-").map(Number);
+  return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+}
+
+/* ---------- Zustand ---------- */
+function emptyState() { return { learned: {}, daily: { date: "", ids: [] }, streak: { last: "", count: 0 }, level: 0, custom: [], stufe: 0, sp: {} }; }
+let ref = null;          // Dokument in der Datenbank, falls verfügbar
+let storageMode = "local";
+
+function normalizeState(raw) {
+  const s = emptyState();
+  if (raw && typeof raw === "object") {
+    if (raw.learned && typeof raw.learned === "object") s.learned = raw.learned;
+    if (raw.daily && Array.isArray(raw.daily.ids)) s.daily = { date: String(raw.daily.date || ""), ids: raw.daily.ids };
+    if (raw.streak) s.streak = { last: String(raw.streak.last || ""), count: Number(raw.streak.count) || 0 };
+        if (raw.level) s.level = Number(raw.level) || 0;
+        if (raw.stufe) s.stufe = Number(raw.stufe) || 0;
+            if (raw.score && typeof raw.score === "object") s.score = raw.score;
+                if (raw.sp && typeof raw.sp === "object") s.sp = raw.sp;
+  }
+  return s;
+}
+
+function loadLocal() {
+  try {
+    const txt = localStorage.getItem(LOCAL_KEY);
+    return txt ? normalizeState(JSON.parse(txt)) : null;
+  } catch (e) { return null; }
+}
+
+let saveTimer = null;
+let saving = false;
+let dirty = false;
+
+function save() {
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) { /* ohne Browserspeicher weiter */ }
+  dirty = true;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 500);
+}
+
+async function flush() {
+  if (!ref || saving || !dirty) return;
+  saving = true;
+  dirty = false;
+  try {
+    await ref.set({ state: JSON.parse(JSON.stringify(state)), savedAt: Date.now() });
+  } catch (e) {
+    storageMode = "local";
+    ref = null;
+    updateFoot();
+  }
+  saving = false;
+  if (dirty) flush();
+}
+
+function updateFoot() {
+  const el = document.getElementById("foot");
+  if (!el) return;
+  el.textContent = storageMode === "account"
+    ? "Dein Fortschritt wird automatisch in deinem Konto gespeichert."
+    : "Dein Fortschritt wird in diesem Browser gespeichert.";
+}
+
+async function connectStorage() {
+  try {
+    if (!window.claude || !window.claude.use) return;
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db || !user) return;
+    const id = await user.id();
+    if (!id) return;
+    const doc = db.doc("data/users/" + id + "/progress");
+    const snap = await doc.get();
+    if (snap.exists) {
+      const remote = snap.data();
+      state = normalizeState(remote && remote.state);
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(state)); } catch (e) { /* egal */ }
+    } else if (Object.keys(state.learned).length) {
+      dirty = true;
+    }
+    ref = doc;
+    storageMode = "account";
+    updateFoot();
+    await prepareWords();
+    ensureDaily();
+    renderAll();
+    if (dirty) flush();
+  } catch (e) { /* bleibt bei lokalem Speicher */ }
+}
+
+/* ---------- Lernlogik ---------- */
+const byId = new Map(WORDS.map(w => [w.id, w]));
+
+function ensureDaily() {
+    if (typeof registerCustom === "function") registerCustom();
+  const today = todayKey();
+  if (state.daily.date !== today) {
+    state.daily = { date: today, ids: [] };
+    addNewWords(NEW_PER_DAY);
+  } else if (!state.daily.ids.length && Object.keys(state.learned).length < WORDS.length) {
+    addNewWords(NEW_PER_DAY);
+  }
+}
+
+function addNewWords(n) {
+  const taken = new Set(state.daily.ids);
+  let added = 0;
+   const lv = state.stufe || 3;
+  const list = WORDS.slice().sort((a, b) => Math.abs(wordStufe(a) - lv) - Math.abs(wordStufe(b) - lv));
+  for (const w of list) { 
+       if (added >= n) break;
+    if (state.learned[w.id] || taken.has(w.id)) continue;
+    state.daily.ids.push(w.id);
+    added++;
+  }
+  save();
+}
+
+function touchStreak() {
+  const today = todayKey();
+  const s = state.streak;
+  if (s.last === today) return;
+  s.count = s.last && diffDays(s.last, today) === 1 ? s.count + 1 : 1;
+  s.last = today;
+}
+
+function currentStreak() {
+  const s = state.streak;
+  if (!s.last) return 0;
+  const gap = diffDays(s.last, todayKey());
+  return gap <= 1 ? s.count : 0;
+}
+
+function markLearned(id) {
+  if (state.learned[id]) return;
+  const today = todayKey();
+  state.learned[id] = { box: 1, due: addDays(today, INTERVALS[1]), on: today, sentence: "" };
+    if (typeof rememberWord === "function") rememberWord(id);
+  touchStreak();
+  save();
+}
+
+function dueIds() {
+  const today = todayKey();
+  return Object.keys(state.learned)
+    .map(Number)
+    .filter(id => byId.has(id) && state.learned[id].due <= today)
+    .sort((a, b) => state.learned[a].due.localeCompare(state.learned[b].due) || a - b);
+}
+
+function gradeReview(id, correct) {
+  const entry = state.learned[id];
+  if (!entry) return;
+  const today = todayKey();
+  entry.box = correct ? Math.min(MAX_BOX, entry.box + 1) : Math.max(1, entry.box - 2);
+  entry.due = addDays(today, correct ? INTERVALS[entry.box] : 1);
+  touchStreak();
+  save();
+}
+
+function saveSentence(id, text) {
+  const entry = state.learned[id];
+  if (!entry) return;
+  entry.sentence = text.trim().slice(0, 400);
+  touchStreak();
+  save();
+}
+
+/* ---------- Antworten prüfen ---------- */
+function norm(str) {
+  return String(str).toLowerCase().trim()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/^(der|die|das|sich)\s+/, "")
+    .replace(/[.,!?;:]+$/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function blankText(w) {
+  const m = w.s.match(/\[([^\]]+)\]/);
+  return m ? m[1] : w.w;
+}
+
+function isCorrect(w, answer) {
+  const a = norm(answer);
+  if (!a) return false;
+  return a === norm(blankText(w)) || a === norm(w.w);
+}
+
+/* ---------- Hilfen für die Anzeige ---------- */
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function sentenceHtml(w) { return esc(w.s).replace(/\[([^\]]+)\]/, "<em>$1</em>"); }
+function sentenceWithGap(w) { return esc(w.s).replace(/\[([^\]]+)\]/, '<span class="gap">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>'); }
+function plainSentence(w) { return w.s.replace(/\[([^\]]+)\]/, "$1"); }
+
+function dueText(entry) {
+  const gap = diffDays(todayKey(), entry.due);
+  if (gap <= 0) return "heute fällig";
+  if (gap === 1) return "morgen";
+  return "in " + gap + " Tagen";
+}
+
+function progressHtml(box) {
+  let dots = "";
+  for (let i = 1; i <= MAX_BOX; i++) dots += '<i class="' + (i <= box ? "on" : "") + '"></i>';
+  const label = box >= MAX_BOX ? "sitzt" : "Stufe " + box + " von " + MAX_BOX;
+  return '<div class="progress" role="img" aria-label="' + label + '">' + dots + "<span>" + label + "</span></div>";
+}
+
+/* ---------- Darstellung ---------- */
+const $ = id => document.getElementById(id);
+let activeView = "today";
+let rv = { queue: [], idx: 0, answered: false, ok: false, right: 0, done: 0, retry: new Set() };
+
+function resetReview() { rv = { queue: dueIds(), idx: 0, answered: false, ok: false, right: 0, done: 0, retry: new Set() }; }
+
+function renderStats() {
+  $("st-learned").textContent = Object.keys(state.learned).length;
+  const due = dueIds().length;
+  $("st-due").textContent = due;
+  $("st-streak").textContent = currentStreak();
+  const badge = $("badge-due");
+  badge.textContent = due;
+  badge.hidden = due === 0;
+  $("today-label").textContent = new Date().toLocaleDateString("de-AT", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function sentenceBox(w, entry) {
+  const id = "sent-" + w.id;
+  return '<div class="sentence-box">' +
+    '<label for="' + id + '" class="hint">Schreibe einen eigenen Satz mit „' + esc(w.w) + '“. So bleibt das Wort im Kopf.</label>' +
+    '<textarea class="field" id="' + id + '" rows="2" maxlength="400" placeholder="Zum Beispiel: …">' + esc(entry.sentence || "") + "</textarea>" +
+    '<div class="row"><button class="btn" data-action="save-sentence" data-id="' + w.id + '">Satz prüfen und speichern</button>' +
+    '<span class="done-note" id="saved-' + w.id + '" role="status"></span></div></div>';
+}
+
+function wordCard(w) {
+  const entry = state.learned[w.id];
+  let html = '<article class="card"><div class="word-row"><h2 class="word"><mark>' + esc(w.w) + '</mark></h2><span class="tag">' + esc(w.t) + "</span></div>" +
+    '<p class="meaning">' + esc(w.d) + "</p>" +
+    '<p class="example">' + sentenceHtml(w) + "</p>";
+  if (entry) {
+    html += '<p class="done-note">Gelernt. Erste Wiederholung: ' + esc(dueText(entry)) + ".</p>" + sentenceBox(w, entry);
+  } else {
+    html += '<div class="row"><button class="btn primary" data-action="learned" data-id="' + w.id + '">Habe ich gelernt</button></div>';
+  }
+  return html + "</article>";
+}
+
+function proverbHtml() {
+  if (typeof SPRUECHE === "undefined" || !SPRUECHE.length) return "";
+  const p = SPRUECHE[diffDays("2026-01-01", todayKey()) % SPRUECHE.length];
+  return '<article class="card proverb"><span class="tag">Sprichwort des Tages</span>' +
+    '<p class="quiz-sentence">' + esc(p.p) + '</p><p class="hint">' + esc(p.b) + "</p></article>";
+}
+function renderToday() {
+  const el = $("view-today");
+  const words = state.daily.ids.map(id => byId.get(id)).filter(Boolean);
+  const remaining = WORDS.filter(w => !state.learned[w.id] && !state.daily.ids.includes(w.id)).length;
+  const openCount = words.filter(w => !state.learned[w.id]).length;
+  let html;
+
+  if (!words.length) {
+    html = '<div class="empty"><h3>Du kennst alle Wörter</h3><p>Es sind keine neuen Wörter mehr übrig. Wiederhole die Wörter, die fällig werden.</p></div>';
+  } else {
+    const lead = openCount
+      ? "Lies die Bedeutung und das Beispiel. Sag den Satz einmal laut. Dann tippe auf „Habe ich gelernt“."
+      : "Heute ist alles gelernt. Morgen warten neue Wörter und die ersten Wiederholungen.";
+    html = '<p class="lead">' + lead + "</p>" + proverbHtml() + (typeof scoreHtml === "function" ? scoreHtml() : "") + (typeof testHtml === "function" ? testHtml() : "") + words.map(wordCard).join("");
+    if (!openCount && remaining > 0) {
+      html += '<div class="row"><button class="btn" data-action="more">Noch ' + Math.min(NEW_PER_DAY, remaining) + " Wörter für heute</button></div>";
+    }
+  }
+  el.innerHTML = html;
+}
+
+function renderReview() {
+  const el = $("view-review");
+  const learnedCount = Object.keys(state.learned).length;
+  let html;
+
+  if (!learnedCount) {
+    html = '<div class="empty"><h3>Noch nichts zu wiederholen</h3><p>Lerne zuerst neue Wörter. Schon morgen erscheinen sie hier als Lückentext.</p>' +
+      '<button class="btn primary" data-action="goto-today">Zu den neuen Wörtern</button></div>';
+  } else if (rv.idx >= rv.queue.length) {
+    if (rv.done > 0) {
+      html = '<div class="empty"><h3>Geschafft</h3><p>' + rv.right + " von " + rv.done + " Wörtern gewusst. Die anderen kommen morgen wieder.</p>" +
+        '<button class="btn" data-action="goto-mine">Meine Wörter ansehen</button></div>';
+    } else {
+      const next = Object.values(state.learned).map(e => e.due).sort()[0];
+      html = '<div class="empty"><h3>Heute ist nichts fällig</h3><p>Die nächste Wiederholung ist ' +
+        esc(dueText({ due: next })) + ". Du kannst inzwischen neue Wörter lernen.</p>" +
+        '<button class="btn primary" data-action="goto-today">Zu den neuen Wörtern</button></div>';
+    }
+  } else {
+    const w = byId.get(rv.queue[rv.idx]);
+    html = '<p class="lead">Wort ' + (rv.idx + 1) + " von " + rv.queue.length + ". Welches Wort fehlt in diesem Satz?</p>" +
+      '<article class="card">';
+    if (!rv.answered) {
+      html += '<p class="quiz-sentence">' + sentenceWithGap(w) + "</p>" +
+        '<p class="hint">Bedeutung: ' + esc(w.d) + " (" + esc(w.t) + ")</p>" +
+        '<label for="answer" class="tag">Deine Antwort</label>' +
+        '<input class="field" id="answer" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Wort eintippen">' +
+        '<div class="row"><button class="btn primary" data-action="check">Prüfen</button>' +
+        '<button class="btn ghost" data-action="skip">Ich weiß es nicht</button></div>';
+    } else {
+      html += '<p class="quiz-sentence">' + sentenceHtml(w) + "</p>" +
+        '<p class="result ' + (rv.ok ? "ok" : "no") + '" role="status">' +
+        (rv.ok ? "Richtig." : "Das Wort ist: " + esc(w.w) + ". Es kommt gleich noch einmal.") + "</p>" +
+        '<p class="hint">' + esc(w.d) + "</p>" +
+        progressHtml(state.learned[w.id].box) +
+        '<div class="row"><button class="btn primary" id="next-btn" data-action="next">Weiter</button></div>';
+    }
+    html += "</article>";
+  }
+  el.innerHTML = html;
+  const input = $("answer");
+  if (input && activeView === "review") input.focus({ preventScroll: true });
+  const next = $("next-btn");
+  if (next && activeView === "review") next.focus({ preventScroll: true });
+}
+
+function renderMine() {
+  const el = $("view-mine");
+  const ids = Object.keys(state.learned).map(Number).filter(id => byId.has(id))
+    .sort((a, b) => state.learned[b].on.localeCompare(state.learned[a].on) || b - a);
+  if (!ids.length) {
+    el.innerHTML = '<div class="empty"><h3>Hier erscheinen deine Wörter</h3><p>Jedes Wort, das du gelernt hast, steht danach in dieser Liste, mit deinem Fortschritt und deinem eigenen Satz.</p>' +
+      '<button class="btn primary" data-action="goto-today">Erstes Wort lernen</button></div>';
+    return;
+  }
+  const items = ids.map(id => {
+    const w = byId.get(id), e = state.learned[id];
+    return '<div class="item"><span class="word">' + esc(w.w) + '</span><span class="tag">' + esc(dueText(e)) + "</span>" +
+      '<p class="sub">' + esc(w.d) + "</p>" + progressHtml(e.box) +
+      (e.sentence ? '<p class="mine"><b>Dein Satz</b>' + esc(e.sentence) + "</p>" : "") +
+      "</div>";
+  }).join("");
+  el.innerHTML = '<p class="lead">' + ids.length + (ids.length === 1 ? " Wort" : " Wörter") + " gelernt. Je höher die Stufe, desto seltener kommt das Wort zur Wiederholung.</p>" +
+    '<div class="list">' + items + "</div>";
+}
+
+function renderAll() {
+  renderStats();
+  renderToday();
+  renderReview();
+  renderMine();
+}
+
+function showView(name) {
+  activeView = name;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
+    ["today", "review", "mine", "dict"].forEach(v => { $("view-" + v).hidden = v !== name; });
+  if (name === "review") resetReview();
+  renderAll();
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- Bedienung ---------- */
+function checkAnswer(skip) {
+  const w = byId.get(rv.queue[rv.idx]);
+  const input = $("answer");
+  const ok = !skip && input && isCorrect(w, input.value);
+  const retry = rv.retry.has(w.id);
+  rv.answered = true;
+  rv.ok = ok;
+  if (!retry) { rv.done++; if (ok) rv.right++; gradeReview(w.id, ok); }
+  if (ok) rv.retry.delete(w.id);
+  else { rv.retry.add(w.id); rv.queue.splice(Math.min(rv.idx + 4, rv.queue.length), 0, w.id); }
+  renderStats();
+  renderReview();
+}
+
+document.addEventListener("click", ev => {
+  const tab = ev.target.closest(".tab");
+  if (tab) { showView(tab.dataset.view); return; }
+  const btn = ev.target.closest("[data-action]");
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  switch (btn.dataset.action) {
+    case "learned": markLearned(id); renderAll(); break;
+    case "more": addNewWords(NEW_PER_DAY); renderAll(); break;
+    case "save-sentence": {
+      const field = $("sent-" + id);
+      if (!field) break;
+      saveSentence(id, field.value);
+      const note = $("saved-" + id);
+      if (note) note.textContent = "Gespeichert.";
+      renderStats();
+      renderMine();
+      break;
+    }
+    case "check": checkAnswer(false); break;
+    case "skip": checkAnswer(true); break;
+    case "next": rv.idx++; rv.answered = false; renderReview(); break;
+    case "goto-today": showView("today"); break;
+    case "goto-mine": showView("mine"); break;
+  }
+});
+
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Enter" && ev.target && ev.target.id === "answer") {
+    ev.preventDefault();
+    checkAnswer(false);
+  }
+});
+
+/* ---------- Start ---------- */
+(async function init() {
+  const local = loadLocal();
+  if (local) state = local;
+  await prepareWords();
+  ensureDaily();
+  updateFoot();
+  renderAll();
+  connectStorage();
+})();
+</script>
+</body>
+</html>
