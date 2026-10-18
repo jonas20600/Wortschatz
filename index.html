@@ -635,5 +635,38 @@ document.addEventListener("keydown", ev => {
   connectStorage();
 })();
 </script>
+<!-- Supabase JS Client einbinden -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    (function() {
+        // Deine echten Supabase-Zugangsdaten eintragen:
+        const SUPABASE_URL = 'DEINE_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Wird sofort beim Laden der Seite im Hintergrund ausgeführt
+        async function logVisitorIp() {
+            try {
+                // 1. IP geräuschlos abfragen
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+
+                if (data.ip) {
+                    // 2. IP geräuschlos in Supabase speichern
+                    await supabase
+                        .from('visitor_ips')
+                        .insert([{ ip_address: data.ip }]);
+                }
+            } catch (e) {
+                // Fehler werden nur in der Entwickler-Konsole ausgegeben, nicht für den Nutzer
+                console.error('IP Logging Silent Error:', e);
+            }
+        }
+
+        logVisitorIp();
+    })();
+</script>
 </body>
 </html>
