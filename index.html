@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-/* Layout: eine schmale Lernspalte wie ein Notizblock. Oben Kennzahlen, darunter Reiter. Das Markergelb steht nur auf dem Lernwort und der Lücke. */
+/* Layout: eine schmale Lernspalte wie ein Notizblock. Oben Kennzahlen, darunter drei Reiter. Das Markergelb steht nur auf dem Lernwort und der Lücke. */
 :root {
   --bg: #eef2f8;
   --surface: #ffffff;
@@ -172,15 +172,15 @@ textarea.field { resize: vertical; min-height: 84px; }
     <button class="tab" role="tab" id="tab-review" aria-selected="false" data-view="review">Wiederholen <span class="badge" id="badge-due" hidden>0</span></button>
     <button class="tab" role="tab" id="tab-mine" aria-selected="false" data-view="mine">Meine Wörter</button>
     <button class="tab" role="tab" id="tab-dict" aria-selected="false" data-view="dict">Wörterbuch</button>
-    <button class="tab" role="tab" id="tab-spr" aria-selected="false" data-view="spr">Sprichwörter <span class="badge" id="badge-spr" hidden>0</span></button>
+   <button class="tab" role="tab" id="tab-spr" aria-selected="false"     <button class="tab" role="tab" id="tab-rh" aria-selected="false" data-view="rh">Rhetorik <span class="badge" id="badge-rh" hidden>0</span></button>data-view="spr">Sprichwörter <span class="badge" id="badge-spr" hidden>0</span></button>
   </nav>
 
   <main>
     <section class="panel" id="view-today" role="tabpanel" aria-labelledby="tab-today"></section>
     <section class="panel" id="view-review" role="tabpanel" aria-labelledby="tab-review" hidden></section>
     <section class="panel" id="view-mine" role="tabpanel" aria-labelledby="tab-mine" hidden></section>
-    <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
-    <section class="panel" id="view-spr" role="tabpanel" aria-labelledby="tab-spr" hidden></section>
+   <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
+   <section class="panel" id="view-spr" role="tabpanel" aria-labelledby="tab-spr" hidden></section>     <section class="panel" id="view-rh" role="tabpanel" aria-labelledby="tab-rh" hidden></section>
   </main>
 
   <p class="foot" id="foot">Dein Fortschritt wird automatisch gespeichert.</p>
@@ -201,6 +201,8 @@ textarea.field { resize: vertical; min-height: 84px; }
 <script src="uebungen.js"></script>
 <script src="sprichwoerter.js"></script>
 <script src="konto-loeschen.js"></script>
+<script src="streak.js"></script>
+<script src="rhetorik.js"></script>
 <script>
 
 const NEW_PER_DAY = 5;
@@ -224,9 +226,9 @@ function diffDays(a, b) { // b - a in Tagen
 
 /* ---------- Zustand ---------- */
 function emptyState() { return { learned: {}, daily: { date: "", ids: [] }, streak: { last: "", count: 0 }, level: 0, custom: [], stufe: 0, sp: {} }; }
-let state = emptyState();
 let ref = null;          // Dokument in der Datenbank, falls verfügbar
 let storageMode = "local";
+let state = emptyState();
 
 function normalizeState(raw) {
   const s = emptyState();
@@ -235,10 +237,10 @@ function normalizeState(raw) {
     if (raw.daily && Array.isArray(raw.daily.ids)) s.daily = { date: String(raw.daily.date || ""), ids: raw.daily.ids };
     if (raw.streak) s.streak = { last: String(raw.streak.last || ""), count: Number(raw.streak.count) || 0 };
     if (raw.level) s.level = Number(raw.level) || 0;
-    if (Array.isArray(raw.custom)) s.custom = raw.custom;
     if (raw.stufe) s.stufe = Number(raw.stufe) || 0;
-    if (raw.score && typeof raw.score === "object") s.score = raw.score;
+    if (raw.score && typeof raw.score === "object") s.score = raw.score; 
     if (raw.sp && typeof raw.sp === "object") s.sp = raw.sp;
+    if (raw.rh && typeof raw.rh === "object") s.rh = raw.rh;
   }
   return s;
 }
@@ -303,7 +305,7 @@ async function connectStorage() {
     ref = doc;
     storageMode = "account";
     updateFoot();
-    if (typeof prepareWords === "function") await prepareWords();
+    await prepareWords();
     ensureDaily();
     renderAll();
     if (dirty) flush();
@@ -314,12 +316,12 @@ async function connectStorage() {
 const byId = new Map(WORDS.map(w => [w.id, w]));
 
 function ensureDaily() {
-  if (typeof registerCustom === "function") registerCustom();
+    if (typeof registerCustom === "function") registerCustom();
   const today = todayKey();
   if (state.daily.date !== today) {
     state.daily = { date: today, ids: [] };
     addNewWords(NEW_PER_DAY);
-  } else if (!state.daily.ids.length && Object.keys(state.learned).length < WORDS.length) {
+  } else if ((state.daily.ids = state.daily.ids.filter(id => byId.has(id))).length === 0 && Object.keys(state.learned).length < WORDS.length) {
     addNewWords(NEW_PER_DAY);
   }
 }
@@ -327,13 +329,13 @@ function ensureDaily() {
 function addNewWords(n) {
   const taken = new Set(state.daily.ids);
   let added = 0;
-  const lv = state.stufe || 3;
-  const ws = w => (typeof wordStufe === "function" ? wordStufe(w) : 3);
-  const list = WORDS.slice().sort((a, b) => Math.abs(ws(a) - lv) - Math.abs(ws(b) - lv));
-  for (const w of list) {
-    if (added >= n) break;
+   const lv = state.stufe || 3;
+  const list = WORDS.slice().sort((a, b) => Math.abs(wordStufe(a) - lv) - Math.abs(wordStufe(b) - lv));
+  for (const w of list) { 
+       if (added >= n) break;
     if (state.learned[w.id] || taken.has(w.id)) continue;
     state.daily.ids.push(w.id);
+    if (typeof rememberWord === "function") rememberWord(w.id);
     added++;
   }
   save();
@@ -358,7 +360,7 @@ function markLearned(id) {
   if (state.learned[id]) return;
   const today = todayKey();
   state.learned[id] = { box: 1, due: addDays(today, INTERVALS[1]), on: today, sentence: "" };
-  if (typeof rememberWord === "function") rememberWord(id);
+    if (typeof rememberWord === "function") rememberWord(id);
   touchStreak();
   save();
 }
@@ -477,7 +479,6 @@ function proverbHtml() {
   return '<article class="card proverb"><span class="tag">Sprichwort des Tages</span>' +
     '<p class="quiz-sentence">' + esc(p.p) + '</p><p class="hint">' + esc(p.b) + "</p></article>";
 }
-
 function renderToday() {
   const el = $("view-today");
   const words = state.daily.ids.map(id => byId.get(id)).filter(Boolean);
@@ -575,7 +576,7 @@ function renderAll() {
 function showView(name) {
   activeView = name;
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
-  ["today", "review", "mine", "dict", "spr"].forEach(v => { $("view-" + v).hidden = v !== name; });
+    ["today", "review", "mine", "dict", "spr", "rh"].forEach(v => { $("view-" + v).hidden = v !== name; });
   if (name === "review") resetReview();
   renderAll();
   window.scrollTo({ top: 0 });
@@ -634,7 +635,7 @@ document.addEventListener("keydown", ev => {
 (async function init() {
   const local = loadLocal();
   if (local) state = local;
-  if (typeof prepareWords === "function") await prepareWords();
+  await prepareWords();
   ensureDaily();
   updateFoot();
   renderAll();

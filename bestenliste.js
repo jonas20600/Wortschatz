@@ -69,7 +69,7 @@
 
   async function showList() {
     ui('<p class="hint">Lade Bestenliste …</p>');
-    const r = await sb.from("profiles").select("nickname,points,stufe").order("points", { ascending: false }).order("updated_at", { ascending: true }).limit(50);
+    const r = await sb.from("profiles").select("nickname,points,stufe,streak").order("points", { ascending: false }).order("updated_at", { ascending: true }).limit(50);
     if (r.error) { ui('<p class="result no">Die Bestenliste konnte nicht geladen werden.</p><div class="row"><button class="btn" data-lb="close">Schließen</button></div>'); return; }
     const rows = r.data || [];
     let extra = "";
@@ -80,7 +80,7 @@
     const list = rows.length ? rows.map((x, i) => {
       const own = me && x.nickname === me.nickname;
       return '<div class="item"' + (own ? ' style="border-color:var(--accent)"' : "") + '><span class="word">' + (i + 1) + ". " + esc(x.nickname) + '</span><span class="tag">' + x.points + " Punkte</span>" +
-        '<p class="sub">Stufe ' + esc(NAMES[(x.stufe || 3) - 1]) + "</p></div>";
+        '<p class="sub">Stufe ' + esc(NAMES[(x.stufe || 3) - 1]) + (x.streak > 0 ? " · 🔥 " + x.streak + " Tage" : "") + "</p></div>";
     }).join("") : '<p class="hint">Noch niemand in der Liste.</p>';
     const hint = !uid ? '<p class="hint">Melde dich an und wähle einen Nickname, um in der Liste zu erscheinen.</p>'
       : !me ? '<p class="hint">Wähle einen Nickname, damit du in der Liste erscheinst.</p>' : "";
