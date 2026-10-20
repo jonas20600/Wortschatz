@@ -51,6 +51,10 @@ body { background-image: linear-gradient(180deg, var(--surface-2) 0, var(--bg) 3
   @keyframes rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
   @keyframes pop { from { opacity: 0.4; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 }
-.tabs { overflow-x: auto; scrollbar-width: none; }
-.tabs::-webkit-scrollbar { display: none; }
-.tab { flex: 1 0 auto; white-space: nowrap; padding-left: 12px; padding-right: 12px; }
+.tabs { flex-wrap: nowrap; gap: 2px; }
+.tab { flex: 1 1 auto; white-space: nowrap; font-size: 15px; padding: 10px 8px; gap: 5px; }
+.tab .badge { font-size: 12px; padding: 0 6px; }
+@media (max-width: 620px) {
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .tab { padding: 10px 4px; }
+}

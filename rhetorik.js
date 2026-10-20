@@ -42,6 +42,38 @@
     ["Apostrophe", "Eine Anrede an Abwesende, Tote oder Dinge.", "O Nacht, wie lang bist du!", 6]
   ];
   const L = D.map(x => ({ n: x[0], d: x[1], b: x[2], l: x[3] }));
+
+  /* Textanalyse: [Stufe, Text, [[Textstelle, Stilmittel], ...]] */
+  const TX = [
+    [3, "Die Zeit ist ein Dieb, der uns jeden Tag ein Stück Leben stiehlt. Der Wecker schreit schon um sechs. Ich bin so müde wie ein Bär im Winter.",
+      [["Die Zeit ist ein Dieb", "Metapher"], ["Der Wecker schreit", "Personifikation"], ["so müde wie ein Bär im Winter", "Vergleich"]]],
+    [3, "Ich habe es dir schon tausendmal gesagt: Milch macht müde Männer munter, aber du hörst nie zu! Aus der Küche plätscherte, rauschte und zischte es.",
+      [["tausendmal", "Hyperbel"], ["Milch macht müde Männer munter", "Alliteration"], ["plätscherte, rauschte und zischte", "Onomatopoesie"]]],
+    [4, "Wir wollen Frieden. Wir wollen Freiheit. Wir wollen Zukunft. Wer will schon in einer Welt ohne Hoffnung leben? Die einen jubeln, die anderen weinen.",
+      [["Wir wollen Frieden. Wir wollen Freiheit. Wir wollen Zukunft.", "Anapher"], ["Wer will schon in einer Welt ohne Hoffnung leben?", "Rhetorische Frage"], ["Die einen jubeln, die anderen weinen", "Antithese"]]],
+    [4, "Er ist von uns gegangen, hieß es leise im Saal. „Na, das war ja wieder eine großartige Idee von dir!“, murmelte sie, als der Regen begann.",
+      [["Er ist von uns gegangen", "Euphemismus"], ["Na, das war ja wieder eine großartige Idee von dir!", "Ironie"]]],
+    [4, "Handys sollten in der Schule erlaubt sein. Denn mit ihnen kann man schnell etwas nachschlagen. Zwar können sie ablenken, dennoch überwiegt der Nutzen. In meiner Klasse half ein Handy bei einer Recherche.",
+      [["Handys sollten in der Schule erlaubt sein.", "These"], ["Denn mit ihnen kann man schnell etwas nachschlagen.", "Argument"], ["Zwar können sie ablenken, dennoch überwiegt der Nutzen.", "Konzession"], ["In meiner Klasse half ein Handy bei einer Recherche.", "Beispiel"]]],
+    [5, "Ich bat, ich flehte, ich schrie. Und sie lachten und sangen und tanzten bis spät. Er rannte, sprang, kletterte, fiel. Ein beredtes Schweigen lag im Raum.",
+      [["Ich bat, ich flehte, ich schrie", "Klimax"], ["Und sie lachten und sangen und tanzten", "Polysyndeton"], ["Er rannte, sprang, kletterte, fiel", "Asyndeton"], ["beredtes Schweigen", "Oxymoron"]]],
+    [5, "Wer wagt, gewinnt. Wer zögert, verliert. Blut, Schweiß und Tränen: Das ist der Preis. Ich weiß, dass ich nichts weiß.",
+      [["Wer wagt, gewinnt. Wer zögert, verliert.", "Parallelismus"], ["Blut, Schweiß und Tränen", "Trikolon"], ["Ich weiß, dass ich nichts weiß", "Paradoxon"]]],
+    [5, "Kinder sind eben Kinder. Der weiße Schimmel stand auf der Wiese. Ende gut, alles gut.",
+      [["Kinder sind eben Kinder", "Tautologie"], ["weiße Schimmel", "Pleonasmus"], ["Ende gut, alles gut", "Ellipse"]]],
+    [6, "Ich esse, um zu leben, und lebe nicht, um zu essen. Gewaltig ist die Macht der Sprache. Er verlor den Hut und die Fassung. Das war nicht schlecht.",
+      [["Ich esse, um zu leben, und lebe nicht, um zu essen", "Chiasmus"], ["Gewaltig ist die Macht der Sprache", "Inversion"], ["Er verlor den Hut und die Fassung", "Zeugma"], ["Das war nicht schlecht", "Litotes"]]],
+    [6, "Wir trinken noch ein Glas. Er hat kein Dach über dem Kopf. O Nacht, wie lang bist du!",
+      [["Wir trinken noch ein Glas", "Metonymie"], ["Er hat kein Dach über dem Kopf", "Synekdoche"], ["O Nacht, wie lang bist du!", "Apostrophe"]]]
+  ];
+  const byName = {};
+  L.forEach(x => { byName[x.n] = x; });
+  const ALL = L.map(x => ({ key: x.n, n: x.n, d: x.d, b: x.b, l: x.l, text: null }));
+  TX.forEach((t, ti) => t[2].forEach((p, pi) => {
+    const k = t[1].indexOf(p[0]);
+    if (k < 0 || !byName[p[1]]) return;
+    ALL.push({ key: "T" + ti + "-" + pi, n: p[1], d: byName[p[1]].d, b: p[0], l: t[0], text: { a: t[1].slice(0, k), m: p[0], z: t[1].slice(k + p[0].length) } });
+  }));
   let s = null, overlay = null;
 
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -50,19 +82,20 @@
   function queue() {
     const e = rh(), t = todayKey(), want = state.stufe || 3;
     const due = [], fresh = [];
-    L.forEach((x, i) => { const r = e[x.n]; if (r) { if (r.due <= t) due.push(i); } else fresh.push(i); });
-    due.sort((a, b) => e[L[a].n].due.localeCompare(e[L[b].n].due));
-    const key = new Map(fresh.map(i => [i, Math.abs(L[i].l - want) + Math.random() * 0.9]));
+    ALL.forEach((x, i) => { const r = e[x.key]; if (r) { if (r.due <= t) due.push(i); } else fresh.push(i); });
+    due.sort((a, b) => e[ALL[a].key].due.localeCompare(e[ALL[b].key].due));
+    const key = new Map(fresh.map(i => [i, Math.abs(ALL[i].l - want) + Math.random() * 0.9]));
     fresh.sort((a, b) => key.get(a) - key.get(b));
     return due.concat(fresh).slice(0, PER);
   }
 
   function build(i) {
-    const x = L[i], r = rh()[x.n], ok = r ? r.ok : 0;
-    const kind = ok === 0 ? "def" : ok === 1 ? "bsp" : "name";
-    const others = shuffle(L.filter((y, j) => j !== i)).slice(0, 3);
+    const x = ALL[i], r = rh()[x.key], ok = r ? r.ok : 0;
+    const kind = x.text ? "text" : ok === 0 ? "def" : ok === 1 ? "bsp" : "name";
+    const others = shuffle(L.filter(y => y.n !== x.n)).slice(0, 3);
     const key = kind === "name" ? "b" : "n";
-    return { i: i, kind: kind, opts: shuffle([{ t: x[key], ok: true }].concat(others.map(y => ({ t: y[key], ok: false })))) };
+    const right = kind === "name" ? x.b : x.n;
+    return { i: i, kind: kind, opts: shuffle([{ t: right, ok: true }].concat(others.map(y => ({ t: y[key], ok: false })))) };
   }
 
   function ui(html) {
@@ -81,31 +114,34 @@
         '<div class="row"><button class="btn primary" data-rh="close">Fertig</button><button class="btn" data-rh="start">Noch eine Runde</button></div>');
       return;
     }
-    const i = s.queue[s.pos], x = L[i];
+    const i = s.queue[s.pos], x = ALL[i];
     if (!s.q || s.q.i !== i || s.qpos !== s.pos) { s.q = build(i); s.qpos = s.pos; s.answered = false; }
     const q = s.q;
     const head = '<span class="tag">Frage ' + (s.pos + 1) + " von " + s.queue.length + " · " + NAMES[x.l - 1] + "</span>";
     let body;
     if (s.answered) {
       body = '<p class="result ' + (s.ok ? "ok" : "no") + '" role="status">' + (s.ok ? "Richtig." : "Nicht ganz.") + "</p>" +
-        '<p class="quiz-sentence"><b>' + esc(x.n) + "</b></p><p class=\"hint\">" + esc(x.d) + '</p><p class="example">' + esc(x.b) + "</p>" +
+        (x.text ? '<p class="example">' + esc(x.text.a) + "<mark>" + esc(x.text.m) + "</mark>" + esc(x.text.z) + "</p>" : "") +
+        '<p class="quiz-sentence"><b>' + esc(x.n) + "</b></p><p class=\"hint\">" + esc(x.d) + "</p>" + (x.text ? "" : '<p class="example">' + esc(x.b) + "</p>") +
         '<div class="row"><button class="btn primary" data-rh="next">Weiter</button></div>';
     } else {
       const opts = q.opts.map((o, n) => '<button class="btn t-opt" data-rh="opt" data-i="' + n + '">' + esc(o.t) + "</button>").join("");
       const tail = '<div class="row"><button class="btn ghost" data-rh="skip">Ich weiß es nicht</button><button class="btn ghost" data-rh="close">Abbrechen</button></div>';
-      const frage = q.kind === "def" ? '<p class="quiz-sentence">' + esc(x.d) + '</p><p class="hint">Wie heißt dieses Stilmittel oder dieser Baustein?</p>'
+      const frage = q.kind === "text" ? '<p class="quiz-sentence">' + esc(x.text.a) + "<mark>" + esc(x.text.m) + "</mark>" + esc(x.text.z) + '</p><p class="hint">Welches Stilmittel oder welcher Baustein steckt in der markierten Stelle?</p>'
+        : q.kind === "def" ? '<p class="quiz-sentence">' + esc(x.d) + '</p><p class="hint">Wie heißt dieses Stilmittel oder dieser Baustein?</p>'
         : q.kind === "bsp" ? '<p class="quiz-sentence">„' + esc(x.b) + '“</p><p class="hint">Was steckt in diesem Satz?</p>'
         : '<p class="quiz-sentence">' + esc(x.n) + '</p><p class="hint">Welcher Satz ist ein Beispiel dafür?</p>';
       body = frage + opts + tail;
     }
+    if (s.answered && window.lektionHtml) body += window.lektionHtml(x.n);
     ui(head + body);
   }
 
   function grade(i, ok) {
-    const x = L[i], e = rh()[x.n] || { ok: 0, due: "" };
+    const x = ALL[i], e = rh()[x.key] || { ok: 0, due: "" };
     e.ok = ok ? e.ok + 1 : 0;
     e.due = addDays(todayKey(), ok ? INTER[Math.min(e.ok, 5)] : 0);
-    rh()[x.n] = e;
+    rh()[x.key] = e;
     if (typeof touchStreak === "function") touchStreak();
     if (ok && typeof awardSpruch === "function") awardSpruch(x.l, 5 + Math.min(e.ok, 5));
     save();
@@ -133,9 +169,9 @@
     const el = document.getElementById("view-rh");
     if (!el) return;
     const e = rh(), t = todayKey();
-    const started = L.filter(x => e[x.n]).length;
-    const due = L.filter(x => e[x.n] && e[x.n].due <= t).length;
-    const sits = L.filter(x => e[x.n] && e[x.n].ok >= 3).length;
+    const started = ALL.filter(x => e[x.key]).length;
+    const due = ALL.filter(x => e[x.key] && e[x.key].due <= t).length;
+    const sits = ALL.filter(x => e[x.key] && e[x.key].ok >= 3).length;
     const badge = document.getElementById("badge-rh");
     if (badge) { badge.textContent = due; badge.hidden = due === 0; }
 
@@ -145,7 +181,7 @@
         '<p class="sub">' + esc(x.d) + '</p><p class="mine"><b>Beispiel</b>' + esc(x.b) + "</p></div>";
     }).join("");
 
-    el.innerHTML = '<p class="lead">Stilmittel und Bausteine der Argumentation, die du in Schularbeiten und Texten brauchst. Übe in kleinen Runden: Erst erkennst du die Erklärung, dann das Beispiel, am Ende wählst du selbst den passenden Satz.</p>' +
+    el.innerHTML = '<p class="lead">Stilmittel und Bausteine der Argumentation, die du in Schularbeiten und Texten brauchst. Übe in kleinen Runden: Erst erkennst du die Erklärung, dann das Beispiel, dann den passenden Satz. Dazu kommt die Textanalyse: In kurzen Texten findest du markierte Stellen und benennst das Stilmittel.</p>' +
       '<article class="card"><span class="tag">Dein Fortschritt</span><p class="meaning"><b>' + started + "</b> von " + L.length + " geübt, davon " + sits + " sicher. " +
       (due ? "Zu wiederholen: " + due + "." : started ? "Heute ist nichts fällig. Du kannst trotzdem Neues üben." : "Starte mit deiner ersten Runde.") + "</p>" +
       '<div class="row"><button class="btn primary" data-rh="start">Üben</button></div></article>' +

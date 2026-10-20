@@ -1,7 +1,7 @@
 (function () {
   const API = "https://api.languagetool.org/v2/check";
   const IGNORE = ["style", "register"];
-    const VERWECHSLUNGEN = [
+  const VERWECHSLUNGEN = [
     { re: /\b(klinkt)\s+(?:sich\s+)?(?:ein\s+(?:wenig|bisschen)|gut|schlecht|etwas|so|wie|nach|komisch|seltsam|merkwürdig|interessant|logisch|falsch|richtig|plausibel|paradox|vernünftig|verrückt)(?![\p{L}])/iu,
       msg: "Meinst du „klingt“? „klingt“ (von klingen) beschreibt, wie etwas wirkt. „klinkt“ gehört zu „klinken“, zum Beispiel bei einer Tür.", fix: () => "klingt" },
     { re: /\b(seid)\s+(?:einem|einer|langem|kurzem|Jahren|Monaten|Wochen|Tagen|Stunden|Minuten|Jahr|Monat|Woche|Tag)(?![\p{L}])/iu,
@@ -9,7 +9,13 @@
     { re: /\b(währe)(?![\p{L}])/iu,
       msg: "Meinst du „wäre“? „währen“ bedeutet „dauern“.", fix: () => "wäre" },
     { re: /\b(wieder(?:spruch|spricht|sprechen|sprüche|spiegel\w*|stand|standen|legen|legt|legung|rufen|ruft|ruf|streben))(?![\p{L}])/iu,
-      msg: "Hier schreibt man „wider“ (gegen), nicht „wieder“ (noch einmal).", fix: w => w.replace(/^wieder/i, m => (m[0] === "W" ? "Wider" : "wider")) }
+      msg: "Hier schreibt man „wider“ (gegen), nicht „wieder“ (noch einmal).", fix: w => w.replace(/^wieder/i, m => (m[0] === "W" ? "Wider" : "wider")) },
+    { re: /\b(?:glaube|glaubst|glaubt|denke|denkst|denkt|meine|meinst|meint|weiß|weißt|wusste|hoffe|hoffst|hofft|sage|sagst|sagt|sagte|finde|findest|findet|dachte)\s+(das)\s+(?:ich|du|er|sie|es|wir|ihr|man)(?![\p{L}])/iu,
+      msg: "Hier leitet das Wort einen Nebensatz ein. Das schreibt man „dass“ (mit Doppel-s).", fix: () => "dass" },
+    { re: /\b(standart)(?![\p{L}])/iu,
+      msg: "Das Wort heißt „Standard“, mit d am Ende.", fix: w => (w[0] === "S" ? "Standard" : "standard") },
+    { re: /\b(garnicht)(?![\p{L}])/iu,
+      msg: "Man schreibt „gar nicht“ getrennt.", fix: () => "gar nicht" }
   ];
 
   function mark(text, ms) {
@@ -22,7 +28,7 @@
     return out + esc(text.slice(pos));
   }
 
-    function kommaFehler(text) {
+  function kommaFehler(text) {
     const out = [];
     const SUB = ["dass", "daß", "weil", "obwohl", "obgleich", "obschon", "falls", "sodass", "sofern", "solange", "sooft", "indem", "nachdem", "bevor", "sobald", "ob", "wenn"];
     const PRON = ["ich", "du", "er", "sie", "es", "wir", "ihr", "man"];
@@ -68,6 +74,7 @@
     }
     return out;
   }
+
   document.addEventListener("click", async ev => {
     const btn = ev.target.closest("[data-action='save-sentence']");
     if (!btn) return;
@@ -85,15 +92,24 @@
     const text = field.value.trim();
     const core = w.w.replace(/^(der|die|das|sich)\s+/i, "");
     const stem = core.length > 6 ? core.slice(0, -2) : core;
+    const nurBuchstaben = s => s.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "");
 
-    if (text.split(/\s+/).filter(Boolean).length < 3) return say("no", "Schreibe einen ganzen Satz mit mindestens drei Wörtern.");
-    if (!text.toLowerCase().includes(stem.toLowerCase())) return say("no", "Verwende das Wort „" + core + "“ in deinem Satz.");
+    const vielfalt = new Set(text.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
+    if (vielfalt.size < 4) return say("no", "Schreibe einen ganzen Satz mit mindestens vier verschiedenen Wörtern.");
+    if (!nurBuchstaben(text).includes(nurBuchstaben(stem))) return say("no", "Verwende das Wort „" + core + "“ in deinem Satz.");
+    if (norm(text) === norm(plainSentence(w))) return say("no", "Das ist der Beispielsatz. Schreibe einen eigenen Satz.");
 
     btn.disabled = true;
     say("", "Ich prüfe deinen Satz …");
     try {
       const own = [];
-            kommaFehler(text).forEach(k => own.push(k));
+      kommaFehler(text).forEach(k => own.push(k));
+      const dbl = /(^|[^\p{L}])(\p{L}{2,})\s+\2(?![\p{L}])/iu.exec(text);
+      if (dbl) own.push({ offset: dbl.index + dbl[1].length, length: dbl[2].length * 2 + 1, message: "Dieses Wort steht doppelt.", replacements: [{ value: dbl[2] }] });
+      const sp1 = /\s+[,.;:!?]/.exec(text);
+      if (sp1) own.push({ offset: sp1.index, length: sp1[0].length, message: "Vor einem Satzzeichen steht kein Leerzeichen.", replacements: [{ value: sp1[0].trim() }] });
+      const sp2 = /[,;:](?=\p{L})/u.exec(text);
+      if (sp2) own.push({ offset: sp2.index, length: 1, message: "Nach einem Satzzeichen folgt ein Leerzeichen.", replacements: [{ value: sp2[0] + " " }] });
       if (w.t === "Nomen") {
         const nm = new RegExp("(^|[^\\p{L}])(" + stem + "\\p{L}*)", "iu").exec(text);
         if (nm && /^\p{Ll}/u.test(nm[2])) own.push({ offset: nm.index + nm[1].length, length: nm[2].length, message: "Nomen werden großgeschrieben.", replacements: [{ value: nm[2].charAt(0).toUpperCase() + nm[2].slice(1) }] });
@@ -101,7 +117,7 @@
       const fw = text.match(/^\S+/)[0], lw = text.match(/\S+$/)[0];
       if (/^\p{Ll}/u.test(text)) own.push({ offset: 0, length: fw.length, message: "Das erste Wort im Satz wird großgeschrieben.", replacements: [{ value: fw.charAt(0).toUpperCase() + fw.slice(1) }] });
       if (!/[.!?…]["“”»«)]*$/.test(text)) own.push({ offset: text.length - lw.length, length: lw.length, message: "Nach dem letzten Wort fehlt ein Satzzeichen. Setze einen Punkt, ein Ausrufezeichen oder ein Fragezeichen.", replacements: [] });
-            VERWECHSLUNGEN.forEach(v => {
+      VERWECHSLUNGEN.forEach(v => {
         const m = v.re.exec(text);
         if (m) own.push({ offset: m.index + m[0].indexOf(m[1]), length: m[1].length, message: v.msg, replacements: [{ value: v.fix(m[1]) }] });
       });

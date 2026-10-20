@@ -167,7 +167,7 @@ textarea.field { resize: vertical; min-height: 84px; }
     </div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Bereiche">
+<nav class="tabs" role="tablist" aria-label="Bereiche">
     <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">Heute neu</button>
     <button class="tab" role="tab" id="tab-review" aria-selected="false" data-view="review">Wiederholen <span class="badge" id="badge-due" hidden>0</span></button>
     <button class="tab" role="tab" id="tab-mine" aria-selected="false" data-view="mine">Meine Wörter</button>
@@ -180,8 +180,9 @@ textarea.field { resize: vertical; min-height: 84px; }
     <section class="panel" id="view-today" role="tabpanel" aria-labelledby="tab-today"></section>
     <section class="panel" id="view-review" role="tabpanel" aria-labelledby="tab-review" hidden></section>
     <section class="panel" id="view-mine" role="tabpanel" aria-labelledby="tab-mine" hidden></section>
-   <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
-   <section class="panel" id="view-spr" role="tabpanel" aria-labelledby="tab-spr" hidden></section>     <section class="panel" id="view-rh" role="tabpanel" aria-labelledby="tab-rh" hidden></section>
+    <section class="panel" id="view-dict" role="tabpanel" aria-labelledby="tab-dict" hidden></section>
+    <section class="panel" id="view-spr" role="tabpanel" aria-labelledby="tab-spr" hidden></section>
+    <section class="panel" id="view-rh" role="tabpanel" aria-labelledby="tab-rh" hidden></section>
   </main>
 
   <p class="foot" id="foot">Dein Fortschritt wird automatisch gespeichert.</p>
@@ -204,6 +205,8 @@ textarea.field { resize: vertical; min-height: 84px; }
 <script src="konto-loeschen.js"></script>
 <script src="streak.js"></script>
 <script src="rhetorik.js"></script>
+<script src="gedichte.js"></script>
+<script src="lektionen.js"></script>
 <script>
 
 const NEW_PER_DAY = 5;
@@ -234,14 +237,15 @@ let state = emptyState();
 function normalizeState(raw) {
   const s = emptyState();
   if (raw && typeof raw === "object") {
-    if (raw.learned && typeof raw.learned === "object") s.learned = raw.learned;
-    if (raw.daily && Array.isArray(raw.daily.ids)) s.daily = { date: String(raw.daily.date || ""), ids: raw.daily.ids };
-    if (raw.streak) s.streak = { last: String(raw.streak.last || ""), count: Number(raw.streak.count) || 0 };
-    if (raw.level) s.level = Number(raw.level) || 0;
-    if (raw.stufe) s.stufe = Number(raw.stufe) || 0;
-    if (raw.score && typeof raw.score === "object") s.score = raw.score; 
-    if (raw.sp && typeof raw.sp === "object") s.sp = raw.sp;
-    if (raw.rh && typeof raw.rh === "object") s.rh = raw.rh;
+  if (raw.learned && typeof raw.learned === "object") s.learned = raw.learned;
+  if (raw.daily && Array.isArray(raw.daily.ids)) s.daily = { date: String(raw.daily.date || ""), ids: raw.daily.ids };
+  if (raw.streak) s.streak = { last: String(raw.streak.last || ""), count: Number(raw.streak.count) || 0 };
+  if (raw.level) s.level = Number(raw.level) || 0;
+  if (raw.stufe) s.stufe = Number(raw.stufe) || 0;
+  if (raw.score && typeof raw.score === "object") s.score = raw.score;
+  if (raw.sp && typeof raw.sp === "object") s.sp = raw.sp;
+  if (raw.rh && typeof raw.rh === "object") s.rh = raw.rh;
+  if (raw.gd && typeof raw.gd === "object") s.gd = raw.gd;
   }
   return s;
 }
