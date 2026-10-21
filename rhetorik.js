@@ -64,7 +64,17 @@
     [6, "Ich esse, um zu leben, und lebe nicht, um zu essen. Gewaltig ist die Macht der Sprache. Er verlor den Hut und die Fassung. Das war nicht schlecht.",
       [["Ich esse, um zu leben, und lebe nicht, um zu essen", "Chiasmus"], ["Gewaltig ist die Macht der Sprache", "Inversion"], ["Er verlor den Hut und die Fassung", "Zeugma"], ["Das war nicht schlecht", "Litotes"]]],
     [6, "Wir trinken noch ein Glas. Er hat kein Dach über dem Kopf. O Nacht, wie lang bist du!",
-      [["Wir trinken noch ein Glas", "Metonymie"], ["Er hat kein Dach über dem Kopf", "Synekdoche"], ["O Nacht, wie lang bist du!", "Apostrophe"]]]
+      [["Wir trinken noch ein Glas", "Metonymie"], ["Er hat kein Dach über dem Kopf", "Synekdoche"], ["O Nacht, wie lang bist du!", "Apostrophe"]]],
+    [3, "Mein Zimmer ist ein Schlachtfeld. Auf dem Boden liegt alles durcheinander. Ich habe dir das schon hundertmal gesagt!",
+      [["Mein Zimmer ist ein Schlachtfeld", "Metapher"], ["hundertmal", "Hyperbel"]]],
+    [4, "Die Sonne lächelt auf den Marktplatz, als wäre nichts geschehen. Nicht Geld macht glücklich, sondern Zeit.",
+      [["Die Sonne lächelt auf den Marktplatz", "Personifikation"], ["Nicht Geld macht glücklich, sondern Zeit", "Antithese"]]],
+    [4, "Man hat mir gesagt, das sei ein kleines Problem. Na, das ist ja wirklich eine winzige Sache, wenn ganze Dörfer unter Wasser stehen!",
+      [["Na, das ist ja wirklich eine winzige Sache", "Ironie"]]],
+    [5, "Wer Schwäche zeigt, verliert. Wer Stärke zeigt, gewinnt. Im Saal herrschte ein schweigsames Geschrei.",
+      [["Wer Schwäche zeigt, verliert. Wer Stärke zeigt, gewinnt.", "Parallelismus"], ["schweigsames Geschrei", "Oxymoron"]]],
+    [6, "Er ist nicht gerade dumm. Sie nahm Abschied und den Hut. Schweigen ist die lauteste Antwort, die es gibt.",
+      [["Er ist nicht gerade dumm", "Litotes"], ["Sie nahm Abschied und den Hut", "Zeugma"], ["Schweigen ist die lauteste Antwort, die es gibt", "Paradoxon"]]]
   ];
   const byName = {};
   L.forEach(x => { byName[x.n] = x; });

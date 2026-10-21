@@ -207,6 +207,8 @@ textarea.field { resize: vertical; min-height: 84px; }
 <script src="rhetorik.js"></script>
 <script src="gedichte.js"></script>
 <script src="lektionen.js"></script>
+<script src="aufsatz.js"></script>
+<script src="zitate.js"></script>
 <script>
 
 const NEW_PER_DAY = 5;
@@ -232,7 +234,7 @@ function diffDays(a, b) { // b - a in Tagen
 function emptyState() { return { learned: {}, daily: { date: "", ids: [] }, streak: { last: "", count: 0 }, level: 0, custom: [], stufe: 0, sp: {} }; }
 let ref = null;          // Dokument in der Datenbank, falls verfügbar
 let storageMode = "local";
-let state = emptyState();
+let state = emptyState()
 
 function normalizeState(raw) {
   const s = emptyState();
@@ -246,6 +248,8 @@ function normalizeState(raw) {
   if (raw.sp && typeof raw.sp === "object") s.sp = raw.sp;
   if (raw.rh && typeof raw.rh === "object") s.rh = raw.rh;
   if (raw.gd && typeof raw.gd === "object") s.gd = raw.gd;
+  if (raw.au && typeof raw.au === "object") s.au = raw.au;
+  if (raw.zt && typeof raw.zt === "object") s.zt = raw.zt;
   }
   return s;
 }

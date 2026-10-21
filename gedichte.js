@@ -44,6 +44,35 @@
         { v: [8, 9], s: "Metapher", w: "Die Seele wird wie ein Vogel mit Flügeln gezeigt. Das steht für Freiheit und Befreiung." },
         { v: [10, 11], s: "Vergleich", w: "Der Vergleich mit dem Heimflug drückt Geborgenheit und Heimweh aus." }],
       aus: { r: "Der Sprecher erlebt eine stille, sternklare Nacht, in der Himmel und Erde verschmelzen, und fühlt sich seelisch frei und geborgen.", f: ["Der Sprecher beschreibt einen Sturm, vor dem er sich fürchtet.", "Der Sprecher plant eine Reise in die Stadt.", "Der Sprecher erinnert sich an einen Streit mit einem Freund."] } }
+    ,
+    { id: "w2", t: "Der Panther", autor: "Rilke", ws: "Der Panther", n: 12, l: 5, thema: "ein gefangenes Tier", lines: null,
+      an: [
+        { v: [0, 1], s: "Personifikation", w: "Der Blick wird „müde“. Das überträgt menschliche Erschöpfung auf das Tier und macht seine Abstumpfung spürbar." },
+        { v: [2, 3], s: "Hyperbel", w: "Die „tausend Stäbe“ übertreiben maßlos. Sie zeigen, dass der Panther die Welt nur noch als Gitter wahrnimmt." },
+        { v: [6, 7], s: "Vergleich", w: "Der Gang wird mit einem Tanz um eine Mitte verglichen. So zeigen sich Kraft und Gefangenschaft zugleich." },
+        { v: [8, 9], s: "Metapher", w: "Die Pupille wird zum Vorhang. Das macht sichtbar, wie selten der Panther überhaupt noch etwas aufnimmt." }],
+      aus: { r: "Der Panther im Käfig verliert durch die Gefangenschaft Kraft und Lebenswillen. Das Gedicht steht für verlorene Freiheit.", f: ["Der Panther jagt in freier Wildbahn erfolgreich.", "Der Sprecher beschreibt begeistert eine Zirkusvorstellung.", "Der Panther freut sich auf seine Fütterung."] } },
+    { id: "w3", t: "Die Lorelei", autor: "Heine", ws: "Die Lorelei", n: 24, l: 4, thema: "eine Sage am Rhein", lines: null,
+      an: [
+        { v: [17, 17], s: "Alliteration", w: "Die vielen w-Laute klingen wie ein Aufstöhnen und verstärken das „Weh“, das den Schiffer ergreift." },
+        { v: [18, 19], s: "Anapher", w: "Die Wiederholung von „Er schaut“ zeigt, wie sein Blick allein auf die Frau gerichtet ist und die Gefahr nicht mehr beachtet." },
+        { v: [20, 21], s: "Personifikation", w: "Die Wellen „verschlingen“ wie ein Raubtier. Die Natur wirkt dadurch bedrohlich und lebendig." }],
+      aus: { r: "Ein trauriger Sprecher erzählt die Sage der Loreley, deren Gesang Schiffer ins Verderben lockt.", f: ["Ein Schiffer erzählt von einer fröhlichen Rheinfahrt.", "Der Sprecher lobt die Schönheit der Weinberge.", "Der Sprecher berichtet von einem Schiffsunglück ohne Ursache."] } }
+    ,
+    { id: "w4", t: "Erlkönig", autor: "Goethe", ws: "Erlkönig", n: 32, l: 5, thema: "eine nächtliche Gefahr", lines: null,
+      an: [
+        { v: [0, 0], s: "Rhetorische Frage", w: "Die Frage zu Beginn weckt Spannung und führt den Leser sofort in die unheimliche Nachtszene." },
+        { v: [15, 15], s: "Onomatopoesie", w: "Das „Säuseln“ klingt wie der Wind selbst. So wirkt die Beruhigung des Vaters zugleich glaubwürdig und unheimlich." },
+        { v: [19, 19], s: "Polysyndeton", w: "Die vielen „und“ ahmen das Wiegen nach und lullen das Kind ein. Die Verlockung klingt sanft und unentrinnbar." },
+        { v: [24, 25], s: "Antithese", w: "Liebe und Gewalt stehen gegeneinander. Das zeigt, wie die Verführung in Bedrohung umschlägt." }],
+      aus: { r: "Ein Vater reitet mit seinem Kind durch die Nacht. Das Kind spürt den Erlkönig, der es lockt und zuletzt tötet, während der Vater die Gefahr nicht erkennt.", f: ["Ein Vater bringt sein Kind sicher zu den Großeltern.", "Ein Kind träumt von einem Abenteuer im Wald und wacht fröhlich auf.", "Ein Jäger erzählt von der Jagd im Winter."] } },
+    { id: "w5", t: "Heidenröslein", autor: "Goethe", ws: "Heidenröslein", n: 21, l: 3, thema: "eine Blume und einen Jungen", lines: null,
+      an: [
+        { v: [0, 1], s: "Metapher", w: "Das Röslein steht für ein junges Mädchen. So wird Zartes und Verletzliches bildhaft gezeigt." },
+        { v: [5, 5], s: "Alliteration", w: "Die r-Laute und die dreifache Wiederholung geben dem Refrain einen schwingenden Klang und betonen das Röslein." },
+        { v: [7, 9], s: "Parallelismus", w: "Der gleiche Satzbau stellt Knabe und Röslein einander gegenüber und macht ihren Streit hörbar." },
+        { v: [16, 16], s: "Personifikation", w: "Das Röslein wehrt sich wie ein Mensch. Dadurch wird das Unrecht an ihm spürbar." }],
+      aus: { r: "Ein Junge bricht eine Rose, obwohl sie sich wehrt. Das Gedicht erzählt auch von Gewalt und Leid, das sich nicht verhindern lässt.", f: ["Ein Junge pflanzt eine Rose und pflegt sie liebevoll.", "Ein Gärtner beschreibt den Frühling auf der Heide.", "Zwei Kinder streiten über eine Wiese."] } }
   ];
   const SM = [...new Set(P.flatMap(p => p.an.map(a => a.s)))];
 
