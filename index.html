@@ -209,6 +209,7 @@ textarea.field { resize: vertical; min-height: 84px; }
 <script src="lektionen.js"></script>
 <script src="aufsatz.js"></script>
 <script src="zitate.js"></script>
+<script src="einstieg.js"></script>
 <script>
 
 const NEW_PER_DAY = 5;
@@ -250,6 +251,7 @@ function normalizeState(raw) {
   if (raw.gd && typeof raw.gd === "object") s.gd = raw.gd;
   if (raw.au && typeof raw.au === "object") s.au = raw.au;
   if (raw.zt && typeof raw.zt === "object") s.zt = raw.zt;
+  if (raw.modus) s.modus = String(raw.modus);
   }
   return s;
 }
@@ -339,10 +341,12 @@ function addNewWords(n) {
   const taken = new Set(state.daily.ids);
   let added = 0;
    const lv = state.stufe || 3;
-  const list = WORDS.slice().sort((a, b) => Math.abs(wordStufe(a) - lv) - Math.abs(wordStufe(b) - lv));
+  const kein = w => (w.s || "").startsWith("Gesucht ist") ? 1 : 0;
+  const list = WORDS.slice().sort(() => Math.random() - 0.5).sort((a, b) => Math.abs(wordStufe(a) - lv) - Math.abs(wordStufe(b) - lv) || kein(a) - kein(b));
   for (const w of list) { 
        if (added >= n) break;
     if (state.learned[w.id] || taken.has(w.id)) continue;
+        if (typeof modusPasst === "function" && !modusPasst(w)) continue;
     state.daily.ids.push(w.id);
     if (typeof rememberWord === "function") rememberWord(w.id);
     added++;
@@ -501,7 +505,7 @@ function renderToday() {
     const lead = openCount
       ? "Lies die Bedeutung und das Beispiel. Sag den Satz einmal laut. Dann tippe auf „Habe ich gelernt“."
       : "Heute ist alles gelernt. Morgen warten neue Wörter und die ersten Wiederholungen.";
-    html = '<p class="lead">' + lead + "</p>" + proverbHtml() + (typeof scoreHtml === "function" ? scoreHtml() : "") + (typeof testHtml === "function" ? testHtml() : "") + words.map(wordCard).join("");
+    html = '<p class="lead">' + lead + "</p>" + proverbHtml() + (typeof modusHtml === "function" ? modusHtml() : "") + (typeof scoreHtml === "function" ? scoreHtml() : "") + (typeof testHtml === "function" ? testHtml() : "") + words.map(wordCard).join("");
     if (!openCount && remaining > 0) {
       html += '<div class="row"><button class="btn" data-action="more">Noch ' + Math.min(NEW_PER_DAY, remaining) + " Wörter für heute</button></div>";
     }
